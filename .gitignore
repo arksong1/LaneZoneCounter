@@ -1,0 +1,18 @@
+# Virtual environment
+env/
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Dataset
+inputs/images/*
+inputs/videos/*
+
+# Logs
+*.log
