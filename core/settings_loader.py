@@ -3,13 +3,20 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _resolve_path(value):
+    path = Path(value)
+    return str(path if path.is_absolute() else (PROJECT_ROOT / path).resolve())
+
 def load_settings():
-    env_path = Path(".env")
+    env_path = PROJECT_ROOT / ".env"
     if env_path.exists():
         load_dotenv(dotenv_path=env_path)
         
-    config_path = Path("config/settings.yaml")
-    with open(config_path) as file:
+    config_path = PROJECT_ROOT / "config" / "settings.yaml"
+    with open(config_path, encoding="utf-8") as file:
         settings = yaml.safe_load(file)
         
    # App settings
@@ -20,11 +27,11 @@ def load_settings():
     
     # Data paths
     if os.getenv("DATA_SOURCE"):
-        settings["data"]["source"] = os.getenv("DATA_SOURCE")
+        settings["data"]["source"] = _resolve_path(os.getenv("DATA_SOURCE"))
     if os.getenv("DATA_OUTPUT"):
-        settings["data"]["output"] = os.getenv("DATA_OUTPUT")
+        settings["data"]["output"] = _resolve_path(os.getenv("DATA_OUTPUT"))
     if os.getenv("DATA_MODEL"):
-        settings["data"]["model"] = os.getenv("DATA_MODEL")
+        settings["data"]["model"] = _resolve_path(os.getenv("DATA_MODEL"))
     
     # Detector settings
     if os.getenv("DETECTOR_TYPE"):
@@ -50,7 +57,7 @@ def load_settings():
     
     # Input settings
     if os.getenv("INPUT_PATH"):
-        settings["input"]["path"] = os.getenv("INPUT_PATH")
+        settings["input"]["path"] = _resolve_path(os.getenv("INPUT_PATH"))
     if os.getenv("INPUT_VID_STRIDE"):
         settings["input"]["vid_stride"] = int(os.getenv("INPUT_VID_STRIDE"))
     if os.getenv("INPUT_DISPLAY"):
@@ -67,5 +74,10 @@ def load_settings():
     # Tracker settings
     if os.getenv("TRACKER_TYPE"):
         settings["tracker"]["type"] = os.getenv("TRACKER_TYPE")
+
+    for section, key in (("data", "source"), ("data", "output"), ("data", "model"), ("input", "path")):
+        value = settings.get(section, {}).get(key)
+        if isinstance(value, str) and value:
+            settings[section][key] = _resolve_path(value)
     
     return settings

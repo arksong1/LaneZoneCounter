@@ -1,3 +1,3 @@
-from .draw import draw_boxes
+from .visualize import draw_boxes
 
 __all__ = ['draw_boxes']

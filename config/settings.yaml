@@ -9,7 +9,7 @@ data:
   model: models
 
 input:
-  path: inputs/videos/traffic-drone-top-view.mp4
+  path: inputs/videos/videoplayback.mp4
   vid_stride: 1 
   display: true
   
@@ -22,20 +22,30 @@ detector:
   device: null  # null cho auto
 
 counters:
-  - type: line
-    start: [100, 200]
-    end: [500, 200]
-    color: [255, 0, 0]  # BGR: Blue
+#   - type: line
+#     start: [100, 200]
+#     end: [500, 200]
+#     color: [255, 0, 0]  # BGR: Blue
   
   # - type: zone
   #   top_left: [100, 100]
   #   bottom_right: [500, 300]
   #   color: [0, 255, 0]  # BGR: Green
   
-  # # Lane với một vùng duy nhất (4 điểm)
-  # - type: lane
-  #   points: [[180, 100], [400, 100], [550, 300], [50, 300]]
-  #   color: [0, 0, 255]  # BGR: Red
+  # # Lane với nhiều vùng
+  - type: lanezone
+    points:
+       - [[220, 50], [255, 50], [190, 300], [60, 300]]
+       - [[255, 50], [295, 50], [315, 300], [190, 300]]
+       - [[295, 50], [325, 50], [445, 300], [315, 300]]
+       - [[325, 50], [360, 50], [570, 300], [445, 300]]
+      #  - [[170, 100], [400, 100], [550, 300], [50, 300]]
+
+    color:
+      - [255, 0, 0]
+      - [0, 255, 0]
+      - [0, 0, 255]
+      - [255, 255, 0]
   
   # LaneZone với NHIỀU VÙNG (3 làn đường riêng biệt)
   # - type: lanezone
