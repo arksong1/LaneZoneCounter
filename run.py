@@ -30,8 +30,8 @@ def main():
 
         if counter_type == "line":
             counter_kwargs = {
-                "start": tuple(counter_config.get["start"]),
-                "end": tuple(counter_config.get["end"])
+                "start": tuple(counter_config.get("start")),
+                "end": tuple(counter_config.get("end"))
             }
 
             if "color" in counter_config:
@@ -39,8 +39,8 @@ def main():
 
         elif counter_type == "zone":
             counter_kwargs = {
-                "top_left": tuple(counter_config.get["top_left"]),
-                "bottom_right": tuple(counter_config.get["bottom_right"])
+                "top_left": tuple(counter_config.get("top_left")),
+                "bottom_right": tuple(counter_config.get("bottom_right"))
             }
 
             if "color" in counter_config:
@@ -82,10 +82,9 @@ def main():
                 vid_stride = vid_stride,
                 display = display
             )
-
-    else:
-        print(f"Error: Unsupported file format: {input_path.suffix}")
-        print("Supported formats: .mp4, .avi, .mov, .mkv, .jpg, .jpeg, .png, .bmp")
+        else:
+            print(f"Error: Unsupported file format: {input_path.suffix}")
+            print("Supported formats: .mp4, .avi, .mov, .mkv, .jpg, .jpeg, .png, .bmp")
 
 if __name__ == "__main__":
     main()

@@ -130,7 +130,7 @@ class LaneZoneCounter:
                     cv2.putText(
                         frame,
                         f"Zone {zone_idx+1}: {self.zone_counts[zone_idx]}",
-                        (cx-50, cy), 
+                        (cx-60, cy), 
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.6,
                         color,
