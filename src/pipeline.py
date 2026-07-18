@@ -1,3 +1,4 @@
+from src.counter.speed import SpeedEstimator
 import cv2 
 from pathlib import Path
 import logging
@@ -34,6 +35,16 @@ class DetectionPipeline:
         
         self.counter = None
 
+        # Initialize speed estimator if enabled
+        self.speed_estimator = None
+        if config.get("speed", {}).get("enabled", False):
+            self.speed_estimator = SpeedEstimator(
+                fps = config["speed"].get("fps", 30),
+                pixel_per_meter= config["speed"].get("pixel_per_meter", 21.7),
+                smooth_window=config["speed"].get("smooth_window", 5)
+            )
+            logger.info("SpeedEstimator initialized")
+
         logger.info("Detection pipeline initialized")
 
     # kwargs truyền các giá trị vị trí khác nhau
@@ -42,26 +53,28 @@ class DetectionPipeline:
             start = kwargs.get("start", (100, 200))
             end = kwargs.get("end", (500, 200))
             color = kwargs.get("color", None)
-            self.counter = LineCounter(start,end, color=color)
+            #self.counter = LineCounter(start,end, color=color)
             logger.info(f"Line counter initialized: {start} to {end}")
 
         elif counter_type == "zone":
             top_left = kwargs.get('top_left', (100, 100))
             bottom_right = kwargs.get('bottom_right', (500, 300))
             color = kwargs.get('color', None)
-            self.counter = ZoneCounter(top_left, bottom_right, color=color)
+            #self.counter = ZoneCounter(top_left, bottom_right, color=color)
             logger.info(f"ZoneCounter initialized: {top_left} to {bottom_right}")
 
         elif counter_type in ("lane", "lanezone"):
             points = kwargs.get('points', [(180, 100), (400, 100), (550, 300), (50, 300)] )
             frame_shape = kwargs.get('frame_shape')
             colors = kwargs.get('colors', None)
-            
+            max_speeds = kwargs.get('max_speeds', None)
             if frame_shape is None:
                 raise ValueError("frame_shape is required for LaneZoneCounter")
-            self.counter = LaneZoneCounter(points, frame_shape, colors=colors)
+            self.counter = LaneZoneCounter(points, frame_shape, colors=colors, max_speeds= max_speeds)
             num_zones = len(points) if isinstance(points[0][0], (list, tuple)) else 1
             logger.info(f"LaneZoneCounter initialized with {num_zones} zone(s)")
+            if max_speeds:
+                logger.info(f"Speed limits configured for zones: {max_speeds}")
 
     def run_video(self, video_path, counter_type='lane', counter_kwargs=None, vid_stride=1, display=True):
         cap = cv2.VideoCapture(str(video_path))
@@ -86,6 +99,11 @@ class DetectionPipeline:
             
             if frame_id == 1 or frame_id % vid_stride == 0:
                 detections = self.detector.detect(frame)
+                
+                if self.speed_estimator:
+                    self.speed_estimator.update(detections)
+                    for detection in detections:
+                        detection["speed"] = self.speed_estimator.get_speed(detection["track_id"])
                 
                 if self.config['saver'].get('save_images', False) or self.config['saver'].get('save_detections', False) or self.config['saver'].get('save_crops', False):
                     self.saver.save(frame, detections, frame_id)

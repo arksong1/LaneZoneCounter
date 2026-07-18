@@ -17,7 +17,7 @@ detector:
   type: yolo26n
   conf_threshold: 0.5
   iou_threshold: 0.7
-  classes: null  
+  classes: [2]
   max_det: 100
   device: null  # null cho auto
 
@@ -82,11 +82,12 @@ counters:
   #     [0, 128, 128],    # Zone 10: Teal
   #     [128, 128, 128]   # Zone 11: Gray
   #   ]
-  #   max_speeds: [  # Tốc độ tối đa cho từng zone (km/h)
-  #     80,  # Zone 1 - Làn trên zone 1
-  #     60,  # Zone 2 - Làn trên zone 2
-  #     60,  # Zone 3 - Làn trên zone 3
-  #     40,  # Zone 4 - Làn trên zone 4
+    max_speeds: [  # Tốc độ tối đa cho từng zone (km/h)
+       80,  # Zone 1 - Làn trên zone 1
+       60,  # Zone 2 - Làn trên zone 2
+       60,  # Zone 3 - Làn trên zone 3
+       40,  # Zone 4 - Làn trên zone 4
+    ]
   #     80,  # Zone 5 - Làn dưới zone 1
   #     60,  # Zone 6 - Làn dưới zone 2
   #     60,  # Zone 7 - Làn dưới zone 3

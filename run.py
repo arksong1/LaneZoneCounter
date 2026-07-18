@@ -30,8 +30,8 @@ def main():
 
         if counter_type == "line":
             counter_kwargs = {
-                "start": tuple(counter_config.get("start")),
-                "end": tuple(counter_config.get("end"))
+                "start": tuple(counter_config.get["start"]),
+                "end": tuple(counter_config.get["end"])
             }
 
             if "color" in counter_config:
@@ -39,8 +39,8 @@ def main():
 
         elif counter_type == "zone":
             counter_kwargs = {
-                "top_left": tuple(counter_config.get("top_left")),
-                "bottom_right": tuple(counter_config.get("bottom_right"))
+                "top_left": tuple(counter_config.get["top_left"]),
+                "bottom_right": tuple(counter_config.get["bottom_right"])
             }
 
             if "color" in counter_config:
@@ -68,8 +68,11 @@ def main():
             elif "color" in counter_config:
                 counter_kwargs["colors"] = counter_config["color"]
 
-            counter_type = "lane"
+            # Thêm max_speeds nếu có trong config
+            if "max_speeds" in counter_config:
+                counter_kwargs["max_speeds"] = counter_config["max_speeds"]
 
+            
             
         print(f"Running pipeline with {counter_type} counter...")
 

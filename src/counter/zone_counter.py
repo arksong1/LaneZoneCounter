@@ -31,12 +31,24 @@ class LaneZoneCounter:
             # Một màu duy nhất cho tất cả zones
             self.colors = [tuple(colors)] * len(self.zones)
         
-       
-            
+        # Xử lý max_speeds từ settings (tốc độ tối đa cho từng zone)
+        # max_speeds = [80, 60, 60, 40, ...] (km/h)
+        if max_speeds is None:
+            self.max_speeds = [None] * len(self.zones) # None = không giới hạn tốc độ
+
+        else:
+            self.max_speeds = max_speeds
+            # Đảm bảo số lượng max speed khớp với số zones
+            if len(self.max_speeds) < len(self.zones):
+                # Nếu thiếu, thêm None vào cuối
+                self.max_speeds.extend([None] * (len(self.zones) - len(self.max_speeds)))
+
+    
         self.count = 0
         self.inside_ids = set()  # tránh đếm trùng
         self.zone_counts = [0] * len(self.zones)  # đếm riêng cho từng zone
         self.zone_inside_ids = [set() for _ in range(len(self.zones))]  # track IDs cho từng zone
+        self.speeding_ids = set() # TrackId của các xe vượt quá tốc độ
        
 
         # tạo mask cho tất cả các zones
@@ -50,7 +62,7 @@ class LaneZoneCounter:
     def update(self, detections):
         current_inside = set()
         current_zone_inside = [set() for _ in range(len(self.zones))]
-        
+        current_speeding = set()  # Xe đang vượt quá tốc độ
         self.centers = []
 
         for detection in detections:
@@ -58,6 +70,7 @@ class LaneZoneCounter:
             track_id = detection["track_id"]
             cx = int((x1 + x2) / 2)
             cy = int((y1 + y2) / 2)
+            speed = detection.get('speed', 0) # Lấy speed từ detection (đã được thêm bởi SpeedEstimator)
            
             self.centers.append((cx, cy))
             
@@ -71,6 +84,14 @@ class LaneZoneCounter:
                 if mask[cy, cx] == 255:
                     current_zone_inside[zone_idx].add(track_id)
                     current_inside.add(track_id)
+
+                    # Kiểm tra tốc độ vượt quá
+                    max_speed = self.max_speeds[zone_idx]
+                    if max_speed is not None and speed > max_speed:
+                        current_speeding.add(track_id)
+                        # Thêm flag vào detection để visualization sử dụng
+                        detection['speeding'] = True
+                        detection['max_speed'] = max_speed
                     
                    
         # Cập nhật count cho từng zone
@@ -86,6 +107,7 @@ class LaneZoneCounter:
         # Tổng count của tất cả zones
         self.count = len(current_inside)
         self.inside_ids = current_inside
+        self.speeding_ids = current_speeding
         
 
     def draw(self, frame):
@@ -136,8 +158,20 @@ class LaneZoneCounter:
                         color,
                         2,
                     )
-                
+
+                    # Dòng 2: Hiển thị tốc độ tối đa (nếu có)
+                    if self.max_speeds[zone_idx] is not None:
+                        cv2.putText(
+                            frame,
+                            f"{self.max_speeds[zone_idx]} km/h",
+                            (cx-50, cy + 25), 
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.6,
+                            color,
+                            2,
+                    )
         
+                
         frame = cv2.addWeighted(overlay, 0.1, frame, 1.0, 0)
 
         return frame
